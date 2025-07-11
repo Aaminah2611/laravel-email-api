@@ -5,6 +5,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\EmailTemplateController;
+
 
 // Public login route to issue tokens
 Route::post('/login', function (Request $request) {
@@ -40,7 +42,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ✅ Protected: Email send
     Route::post('/send-email', [EmailController::class, 'send']);
+
+    // ✅ Protected: EmailTemplate CRUD
+    Route::apiResource('/email-templates', EmailTemplateController::class);
 });
+
 
 // 🌐 Public test route
 Route::get('/test', function () {
