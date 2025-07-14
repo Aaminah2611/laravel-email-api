@@ -53,4 +53,19 @@ class EmailController extends Controller
             'sent_at' => $email->sent_at,
         ]);
     }
+
+    public function listEmails(Request $request)
+{
+    $perPage = $request->query('per_page', 10); // default 10 per page
+    $emails = Email::orderBy('created_at', 'desc')->paginate($perPage);
+
+    return response()->json([
+        'data' => $emails->items(),
+        'current_page' => $emails->currentPage(),
+        'per_page' => $emails->perPage(),
+        'total' => $emails->total(),
+        'last_page' => $emails->lastPage(),
+    ]);
+}
+
 }

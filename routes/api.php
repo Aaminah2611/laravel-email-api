@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EmailTemplateController;
+use App\Http\Controllers\UserController;
+
 
 
 // Public login route to issue tokens
@@ -55,3 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/test', function () {
     return response()->json(['message' => 'API is working']);
 });
+
+Route::get('/emails', [EmailController::class, 'listEmails']);
+Route::get('/users', [UserController::class, 'listUsers']);
+
