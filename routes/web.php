@@ -11,3 +11,17 @@ Route::get('/test-db', function () {
         return response()->json(['error' => $e->getMessage()]);
     }
 });
+
+use Illuminate\Support\Facades\Log;
+
+Route::get('/env-debug', function () {
+    Log::info('Env debug:', [
+        'MAILTRAP_INBOX_ID' => env('MAILTRAP_INBOX_ID'),
+        'MAILTRAP_API_TOKEN' => env('MAILTRAP_API_TOKEN'),
+    ]);
+    return response()->json([
+        'MAILTRAP_INBOX_ID' => env('MAILTRAP_INBOX_ID'),
+        'MAILTRAP_API_TOKEN' => env('MAILTRAP_API_TOKEN'),
+    ]);
+});
+

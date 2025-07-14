@@ -43,6 +43,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // ✅ Protected: Email send
     Route::post('/send-email', [EmailController::class, 'send']);
 
+    // ✅ Protected: Email status query
+    Route::get('/emails/{id}/status', [EmailController::class, 'checkStatus']);
+
     // ✅ Protected: EmailTemplate CRUD
     Route::apiResource('/email-templates', EmailTemplateController::class);
 });
