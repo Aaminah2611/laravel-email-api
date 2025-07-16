@@ -25,3 +25,8 @@ Route::get('/env-debug', function () {
     ]);
 });
 
+Route::get('/', function() {
+    return 'Laravel API is running!';
+});
+
+
