@@ -52,4 +52,20 @@ class EmailTemplateController extends Controller
 
         return response()->json(null, 204);
     }
+
+    public function restore($id)
+{
+    $template = EmailTemplate::onlyTrashed()->findOrFail($id);
+    $template->restore();
+
+    return response()->json(['message' => 'Template restored successfully.']);
+}
+
+public function trashed()
+{
+    $trashedTemplates = EmailTemplate::onlyTrashed()->paginate(10);
+    return response()->json($trashedTemplates);
+}
+
+
 }

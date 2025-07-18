@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Email;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Response;
+
 
 class EmailController extends Controller
 {
@@ -66,6 +68,38 @@ class EmailController extends Controller
         'total' => $emails->total(),
         'last_page' => $emails->lastPage(),
     ]);
+}
+
+public function destroy($id)
+{
+    $email = Email::findOrFail($id);
+    $email->delete(); // This triggers a soft delete
+    return response()->json(['message' => 'Email soft-deleted successfully.']);
+}
+
+
+public function trashed()
+{
+    $trashed = Email::onlyTrashed()->orderBy('deleted_at', 'desc')->paginate(10);
+
+    return response()->json([
+        'data' => $trashed->items(),
+        'current_page' => $trashed->currentPage(),
+        'per_page' => $trashed->perPage(),
+        'total' => $trashed->total(),
+        'last_page' => $trashed->lastPage(),
+    ]);
+}
+
+public function restore($id)
+{
+    $email = Email::onlyTrashed()->findOrFail($id);
+    $email->restore();
+
+    return response()->json([
+        'message' => 'Email restored successfully.',
+        'email' => $email
+    ], Response::HTTP_OK);
 }
 
 }

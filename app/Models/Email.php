@@ -2,14 +2,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+
 
 class Email extends Model
 {
-protected $fillable = [
-    'to',
-    'subject',
-    'body',
-    'status',
-    'mailtrap_message_id', 
-];
+use SoftDeletes;
+
+ protected $fillable = ['to', 'subject', 'body', 'status', 'sent_at'];
+
+protected $dates = ['deleted_at'];
 }

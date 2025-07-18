@@ -8,9 +8,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\UserController;
 
+// 🌐 Public login route to issue tokens
 
-
-// Public login route to issue tokens
 Route::post('/login', function (Request $request) {
     $request->validate([
         'email' => 'required|email',
@@ -26,38 +25,54 @@ Route::post('/login', function (Request $request) {
     $token = $user->createToken('api-token')->plainTextToken;
 
     return response()->json(['token' => $token]);
-});
+})->name('login');
+
 
 // 🔒 Protected routes that require valid Sanctum token
 Route::middleware('auth:sanctum')->group(function () {
 
-    // ✅ Protected: Get authenticated user
+    // ✅ Authenticated user info
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
 
-    // ✅ Protected: Logout and revoke token
+    // ✅ Logout
     Route::post('/logout', function (Request $request) {
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Logged out']);
     });
 
-    // ✅ Protected: Email send
+    // ✅ Email send & status
     Route::post('/send-email', [EmailController::class, 'send']);
-
-    // ✅ Protected: Email status query
     Route::get('/emails/{id}/status', [EmailController::class, 'checkStatus']);
 
-    // ✅ Protected: EmailTemplate CRUD
+    // ✅ EmailTemplate CRUD
     Route::apiResource('/email-templates', EmailTemplateController::class);
-});
 
+    // ✅ List endpoints
+    Route::get('/emails', [EmailController::class, 'listEmails']);
+    Route::get('/users', [UserController::class, 'listUsers']);
+
+    Route::delete('/emails/{id}', [EmailController::class, 'destroy']);
+
+
+    // ✅ Trashed & Restore (protected)
+    // Email Templates
+    Route::get('/templates/trashed', [EmailTemplateController::class, 'trashed']);
+    Route::post('/templates/{id}/restore', [EmailTemplateController::class, 'restore']);
+
+    // Emails
+    Route::get('/emails/trashed', [EmailController::class, 'trashed']);
+    Route::post('/emails/{id}/restore', [EmailController::class, 'restore']);
+
+    // Users
+    Route::get('/users/trashed', [UserController::class, 'trashed']);
+    Route::post('/users/{id}/restore', [UserController::class, 'restore']);
+    Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
+});
 
 // 🌐 Public test route
 Route::get('/test', function () {
     return response()->json(['message' => 'API is working']);
 });
-
-Route::get('/emails', [EmailController::class, 'listEmails']);
-Route::get('/users', [UserController::class, 'listUsers']);
-
