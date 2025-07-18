@@ -1,61 +1,151 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
 
-## About Laravel
+# Laravel Email System API
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Introduction
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+This project is an Email System API built with Laravel to provide a practical, real-world backend service for sending, managing, and tracking emails programmatically. It is designed as a learning project for interns and developers to gain hands-on experience with API development, email integration, queues, and Laravel best practices.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Overview
 
-## Learning Laravel
+The Email System API serves as a centralized backend to send various email types — transactional, marketing, notifications — through a simple API interface. This allows internal services or applications to dispatch emails without managing SMTP details directly.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Key functionalities include sending simple and templated emails, managing email templates, and tracking email delivery status. Email sending is handled asynchronously through Laravel’s queue system to improve API responsiveness.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Technologies Used
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+* Backend Framework: Laravel (PHP)
+* Database: MySQL (via Docker container)
+* Email Driver: SMTP (configured with Mailtrap for development)
+* Queue Driver: Database (Laravel queue system)
+* API Authentication: Laravel Sanctum (token-based)
+* Validation: Laravel built-in request validation
+* Testing: PHPUnit
+* Containerization: Docker and Docker Compose
 
-## Laravel Sponsors
+## Docker Deployment
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+This API is fully containerized using Docker for easy local development and testing. The main containers are:
 
-### Premium Partners
+* **app**: Laravel PHP application
+* **db**: MySQL 8.0 database
+* **webserver**: Nginx serving the Laravel app on port 8000
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Setup and Running
 
-## Contributing
+1. Clone the repository.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+2. Ensure Docker and Docker Compose are installed.
 
-## Code of Conduct
+3. Run the following to build and start containers:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+   ```bash
+   docker-compose up -d --build
+   ```
 
-## Security Vulnerabilities
+4. Run migrations and seed the database:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+   ```bash
+   docker-compose exec app php artisan migrate:fresh --seed
+   ```
 
-## License
+5. **Important:** Start the Laravel queue worker to process asynchronous jobs like sending emails:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+   ```bash
+   docker-compose exec app php artisan queue:work
+   ```
+
+   Keep this running during development and testing to allow queued emails to be sent.
+
+6. Access the API at: `http://localhost:8000`
+
+## Environment Configuration
+
+The `.env` file is set up to connect the app container to the `db` MySQL container. Database credentials and ports are configured accordingly. Mailtrap SMTP is used for email testing with the relevant credentials.
+
+## API Routes and Usage
+
+Below are the main tested API endpoints. All routes are prefixed with `/api/`.
+
+| HTTP Method | Endpoint                    | Description                     | Example Request Body / Notes                             |
+| ----------- | --------------------------- | ------------------------------- | -------------------------------------------------------- |
+| POST        | `/api/login`                | User login                      | JSON with email and password                             |
+| POST        | `/api/logout`               | User logout                     | Token authentication required                            |
+| POST        | `/api/send-email`           | Send an email                   | JSON: `{ "to": "...", "subject": "...", "body": "..." }` |
+| GET         | `/api/email-templates`      | List all email templates        | Pagination supported                                     |
+| POST        | `/api/email-templates`      | Create a new email template     | JSON with template fields                                |
+| GET         | `/api/email-templates/{id}` | Retrieve a specific template    |                                                          |
+| PUT/PATCH   | `/api/email-templates/{id}` | Update a specific template      | JSON with updated fields                                 |
+| DELETE      | `/api/email-templates/{id}` | Delete a template               |                                                          |
+| GET         | `/api/emails`               | List sent emails                | Pagination supported                                     |
+| GET         | `/api/emails/{id}/status`   | Check status of a sent email    |                                                          |
+| GET         | `/api/users`                | List users                      | Pagination supported                                     |
+| GET         | `/api/test`                 | Test route for API connectivity | Simple test endpoint                                     |
+
+## What This Application Does Successfully
+
+* Fully containerized Laravel backend deployed via Docker Compose.
+* Connects app, database, and webserver containers seamlessly.
+* Supports user authentication via Laravel Sanctum.
+* Allows CRUD operations on email templates.
+* Sends emails asynchronously via Laravel queues and SMTP (Mailtrap).
+* Tracks email sending status (pending, sent, failed).
+* Provides RESTful API endpoints tested and verified with Postman.
+* Utilizes database queue driver for reliable background processing.
+* Implements robust validation for request payloads.
+
+## Important Code Files and Structure
+
+* `app/Http/Controllers/EmailController.php` — Email sending, status, and list handling
+* `app/Http/Controllers/EmailTemplateController.php` — CRUD operations for email templates
+* `routes/api.php` — All API routes definitions
+* `config/queue.php` — Queue driver configuration (using database)
+* `config/mail.php` — SMTP settings for Mailtrap integration
+* `docker-compose.yml` — Docker container definitions for app, db, webserver
+* `Dockerfile` — Defines the PHP/Laravel app container environment
+* `.env` — Environment variables for DB, mail, and app configuration
+* `database/migrations/` — Database schema migrations including users, emails, templates
+* `database/seeders/` — Seed data for initial testing
+* `app/Jobs/SendEmailJob.php` — Laravel queued job for sending emails asynchronously
+
+## Pre-requisites
+
+* Docker and Docker Compose installed on your local machine
+* Basic knowledge of Laravel, Docker, and REST API usage
+* Postman or similar API client for testing endpoints
+
+## How to Test the API
+
+* Use Postman to test all endpoints at `http://localhost:8000/api/`
+* Ensure to pass required headers like `Authorization: Bearer {token}` where needed
+* For sending email, provide JSON body with `"to"`, `"subject"`, and `"body"` fields
+* Monitor the queue worker logs to verify email jobs are processed
+* Check Mailtrap inbox for received emails during development
+
+## Important Notes
+
+* **Queue Worker:**
+  To enable asynchronous email sending, the Laravel queue worker **must** be running:
+
+  ```bash
+  docker-compose exec app php artisan queue:work
+  ```
+
+  Without this, emails will not be dispatched and will remain in the pending state.
+
+* **Environment Variables:**
+  Ensure `.env` is properly configured with database and mail credentials. Mailtrap is set for development.
+
+* **Ports:**
+  The Laravel app is served on port 8000 via the `webserver` container. Use `http://localhost:8000` for API requests.
+
+## Extending the Project
+
+* Switch queue driver to Redis for improved performance
+* Integrate production SMTP providers (SendGrid, Mailgun)
+* Implement advanced email template engines (Blade/Markdown)
+* Add detailed logging and error handling
+
+---
+
+
