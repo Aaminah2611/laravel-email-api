@@ -2,61 +2,40 @@
 
 use App\Http\Controllers\EmailController;
 use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
 
-// 🌐 Public login route to issue tokens
+// 🌐 Remove /login route if Keycloak handles authentication externally
 
-Route::post('/login', function (Request $request) {
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
+// 🔒 Protected routes using Keycloak guard (api)
+Route::middleware('auth:api')->group(function () {
 
-    $user = User::where('email', $request->email)->first();
-
-    if (! $user || ! Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'Invalid credentials'], 401);
-    }
-
-    $token = $user->createToken('api-token')->plainTextToken;
-
-    return response()->json(['token' => $token]);
-})->name('login');
-
-
-// 🔒 Protected routes that require valid Sanctum token
-Route::middleware('auth:sanctum')->group(function () {
-
-    // ✅ Authenticated user info
+    // Authenticated user info
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
 
-    // ✅ Logout
+    // Logout: adjust according to Keycloak logout flow
     Route::post('/logout', function (Request $request) {
-        $request->user()->currentAccessToken()->delete();
+        // Optionally: Implement Keycloak logout redirection or token invalidation logic here
         return response()->json(['message' => 'Logged out']);
     });
 
-    // ✅ Email send & status
+    // Email send & status
     Route::post('/send-email', [EmailController::class, 'send']);
     Route::get('/emails/{id}/status', [EmailController::class, 'checkStatus']);
 
-    // ✅ EmailTemplate CRUD
+    // EmailTemplate CRUD
     Route::apiResource('/email-templates', EmailTemplateController::class);
 
-    // ✅ List endpoints
+    // List endpoints
     Route::get('/emails', [EmailController::class, 'listEmails']);
     Route::get('/users', [UserController::class, 'listUsers']);
 
     Route::delete('/emails/{id}', [EmailController::class, 'destroy']);
 
-
-    // ✅ Trashed & Restore (protected)
+    // Trashed & Restore (protected)
     // Email Templates
     Route::get('/templates/trashed', [EmailTemplateController::class, 'trashed']);
     Route::post('/templates/{id}/restore', [EmailTemplateController::class, 'restore']);
@@ -69,10 +48,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/trashed', [UserController::class, 'trashed']);
     Route::post('/users/{id}/restore', [UserController::class, 'restore']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
-
 });
 
-// 🌐 Public test route
+// 🌐 Public test route (no change)
 Route::get('/test', function () {
     return response()->json(['message' => 'API is working']);
 });
