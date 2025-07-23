@@ -5,52 +5,58 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
-// 🌐 Remove /login route if Keycloak handles authentication externally
+// Protected routes using auth:keycloak guard middleware
+Route::middleware('auth:keycloak')->group(function () {
 
-// 🔒 Protected routes using Keycloak guard (api)
-Route::middleware('auth:api')->group(function () {
-
-    // Authenticated user info
-    Route::get('/user', function (Request $request) {
+    Route::get('/api/user', function (Request $request) {
         return $request->user();
     });
 
-    // Logout: adjust according to Keycloak logout flow
-    Route::post('/logout', function (Request $request) {
-        // Optionally: Implement Keycloak logout redirection or token invalidation logic here
+    // Authenticated user info — the `/api/me` endpoint
+    Route::get('/me', function () {
+        return response()->json(Auth::user());
+    });
+
+    // Authenticated user info (duplicate of /me but returning raw user)
+    Route::get('/user', function () {
+        return Auth::user();
+    });
+
+    // Logout
+    Route::post('/logout', function () {
         return response()->json(['message' => 'Logged out']);
     });
 
-    // Email send & status
+    // Email routes
     Route::post('/send-email', [EmailController::class, 'send']);
     Route::get('/emails/{id}/status', [EmailController::class, 'checkStatus']);
-
-    // EmailTemplate CRUD
-    Route::apiResource('/email-templates', EmailTemplateController::class);
-
-    // List endpoints
     Route::get('/emails', [EmailController::class, 'listEmails']);
-    Route::get('/users', [UserController::class, 'listUsers']);
-
     Route::delete('/emails/{id}', [EmailController::class, 'destroy']);
-
-    // Trashed & Restore (protected)
-    // Email Templates
-    Route::get('/templates/trashed', [EmailTemplateController::class, 'trashed']);
-    Route::post('/templates/{id}/restore', [EmailTemplateController::class, 'restore']);
-
-    // Emails
     Route::get('/emails/trashed', [EmailController::class, 'trashed']);
     Route::post('/emails/{id}/restore', [EmailController::class, 'restore']);
 
-    // Users
+    // Email Template routes
+    Route::apiResource('/email-templates', EmailTemplateController::class);
+    Route::get('/templates/trashed', [EmailTemplateController::class, 'trashed']);
+    Route::post('/templates/{id}/restore', [EmailTemplateController::class, 'restore']);
+
+    // User routes
+    Route::get('/users', [UserController::class, 'listUsers']);
     Route::get('/users/trashed', [UserController::class, 'trashed']);
     Route::post('/users/{id}/restore', [UserController::class, 'restore']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
 });
 
-// 🌐 Public test route (no change)
-Route::get('/test', function () {
-    return response()->json(['message' => 'API is working']);
+// Public routes (no auth required)
+Route::get('/hello', fn () => response()->json(['message' => 'hello world']));
+Route::get('/test', fn () => response()->json(['message' => 'API is working']));
+Route::get('/ping', fn () => response()->json(['message' => 'pong']));
+
+Route::get('/log-test', function () {
+    Log::info('✅ Log test successful');
+    return 'Check your logs.';
 });

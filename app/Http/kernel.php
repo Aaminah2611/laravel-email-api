@@ -27,9 +27,10 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            // Removed Sanctum middleware because Keycloak will handle authentication
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\KeycloakUserSync::class, // Your Keycloak sync middleware
         ],
     ];
 
@@ -43,5 +44,8 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+
+        // Register your Keycloak middleware alias here to use as 'keycloak.user.sync'
+        'keycloak.user.sync' => \App\Http\Middleware\KeycloakUserSync::class,
     ];
 }
