@@ -7,7 +7,6 @@ use Illuminate\Foundation\Http\Kernel as HttpKernel;
 class Kernel extends HttpKernel
 {
     protected $middleware = [
-        // Global middleware
         \App\Http\Middleware\TrustProxies::class,
         \Illuminate\Http\Middleware\HandleCors::class,
         \Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance::class,
@@ -27,10 +26,9 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-            // Removed Sanctum middleware because Keycloak will handle authentication
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\KeycloakUserSync::class, // Your Keycloak sync middleware
+            // ✅ REMOVED KeycloakUserSync - authentication handled by guards instead
         ],
     ];
 
@@ -44,8 +42,8 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-
-        // Register your Keycloak middleware alias here to use as 'keycloak.user.sync'
+        
+        // Keep this if you want to use it selectively on specific routes
         'keycloak.user.sync' => \App\Http\Middleware\KeycloakUserSync::class,
     ];
 }

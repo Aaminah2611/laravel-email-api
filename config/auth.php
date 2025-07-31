@@ -2,35 +2,74 @@
 
 return [
 
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Defaults
+    |--------------------------------------------------------------------------
+    */
+
     'defaults' => [
-        'guard' => env('AUTH_GUARD', 'keycloak'),  // default to your custom guard
+        'guard' => 'web',
         'passwords' => 'users',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Guards
+    |--------------------------------------------------------------------------
+    */
+
     'guards' => [
+        'web' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+
         'keycloak' => [
             'driver' => 'keycloak',
-            'provider' => 'custom_users',   // <-- must match a provider defined below
+            'provider' => 'keycloak',  // This should match the provider name below
         ],
-        // ... other guards
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | User Providers
+    |--------------------------------------------------------------------------
+    */
+
     'providers' => [
-        'custom_users' => [  // <-- This is your user provider key, matches guard's 'provider'
-            'driver' => 'custom_user_provider', // <-- driver name registered in AuthServiceProvider
+        'users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\User::class,
+        ],
+
+        'keycloak' => [  // This should match what your AuthServiceProvider registers
+            'driver' => 'keycloak',  // This should match what your AuthServiceProvider registers
             'model' => App\Models\User::class,
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Resetting Passwords
+    |--------------------------------------------------------------------------
+    */
+
     'passwords' => [
         'users' => [
-            'provider' => 'custom_users',  // should also point to 'custom_users'
-            'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'provider' => 'users',
+            'table' => 'password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
         ],
     ],
 
-    'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+    /*
+    |--------------------------------------------------------------------------
+    | Password Confirmation Timeout
+    |--------------------------------------------------------------------------
+    */
+
+    'password_timeout' => 10800,
 
 ];
