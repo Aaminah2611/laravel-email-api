@@ -1,4 +1,3 @@
-Here's your updated `README.md` tailored for your current **Keycloak-integrated Laravel Email API**, including Keycloak authentication setup, token usage, Docker instructions, user syncing, and detailed examples.
 
 ---
 
