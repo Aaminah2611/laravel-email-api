@@ -1,151 +1,245 @@
-
-
-# Laravel Email System API
-
-## Introduction
-
-This project is an Email System API built with Laravel to provide a practical, real-world backend service for sending, managing, and tracking emails programmatically. It is designed as a learning project for interns and developers to gain hands-on experience with API development, email integration, queues, and Laravel best practices.
-
-## Overview
-
-The Email System API serves as a centralized backend to send various email types — transactional, marketing, notifications — through a simple API interface. This allows internal services or applications to dispatch emails without managing SMTP details directly.
-
-Key functionalities include sending simple and templated emails, managing email templates, and tracking email delivery status. Email sending is handled asynchronously through Laravel’s queue system to improve API responsiveness.
-
-## Technologies Used
-
-* Backend Framework: Laravel (PHP)
-* Database: MySQL (via Docker container)
-* Email Driver: SMTP (configured with Mailtrap for development)
-* Queue Driver: Database (Laravel queue system)
-* API Authentication: Laravel Sanctum (token-based)
-* Validation: Laravel built-in request validation
-* Testing: PHPUnit
-* Containerization: Docker and Docker Compose
-
-## Docker Deployment
-
-This API is fully containerized using Docker for easy local development and testing. The main containers are:
-
-* **app**: Laravel PHP application
-* **db**: MySQL 8.0 database
-* **webserver**: Nginx serving the Laravel app on port 8000
-
-### Setup and Running
-
-1. Clone the repository.
-
-2. Ensure Docker and Docker Compose are installed.
-
-3. Run the following to build and start containers:
-
-   ```bash
-   docker-compose up -d --build
-   ```
-
-4. Run migrations and seed the database:
-
-   ```bash
-   docker-compose exec app php artisan migrate:fresh --seed
-   ```
-
-5. **Important:** Start the Laravel queue worker to process asynchronous jobs like sending emails:
-
-   ```bash
-   docker-compose exec app php artisan queue:work
-   ```
-
-   Keep this running during development and testing to allow queued emails to be sent.
-
-6. Access the API at: `http://localhost:8000`
-
-## Environment Configuration
-
-The `.env` file is set up to connect the app container to the `db` MySQL container. Database credentials and ports are configured accordingly. Mailtrap SMTP is used for email testing with the relevant credentials.
-
-## API Routes and Usage
-
-Below are the main tested API endpoints. All routes are prefixed with `/api/`.
-
-| HTTP Method | Endpoint                    | Description                     | Example Request Body / Notes                             |
-| ----------- | --------------------------- | ------------------------------- | -------------------------------------------------------- |
-| POST        | `/api/login`                | User login                      | JSON with email and password                             |
-| POST        | `/api/logout`               | User logout                     | Token authentication required                            |
-| POST        | `/api/send-email`           | Send an email                   | JSON: `{ "to": "...", "subject": "...", "body": "..." }` |
-| GET         | `/api/email-templates`      | List all email templates        | Pagination supported                                     |
-| POST        | `/api/email-templates`      | Create a new email template     | JSON with template fields                                |
-| GET         | `/api/email-templates/{id}` | Retrieve a specific template    |                                                          |
-| PUT/PATCH   | `/api/email-templates/{id}` | Update a specific template      | JSON with updated fields                                 |
-| DELETE      | `/api/email-templates/{id}` | Delete a template               |                                                          |
-| GET         | `/api/emails`               | List sent emails                | Pagination supported                                     |
-| GET         | `/api/emails/{id}/status`   | Check status of a sent email    |                                                          |
-| GET         | `/api/users`                | List users                      | Pagination supported                                     |
-| GET         | `/api/test`                 | Test route for API connectivity | Simple test endpoint                                     |
-
-## What This Application Does Successfully
-
-* Fully containerized Laravel backend deployed via Docker Compose.
-* Connects app, database, and webserver containers seamlessly.
-* Supports user authentication via Laravel Sanctum.
-* Allows CRUD operations on email templates.
-* Sends emails asynchronously via Laravel queues and SMTP (Mailtrap).
-* Tracks email sending status (pending, sent, failed).
-* Provides RESTful API endpoints tested and verified with Postman.
-* Utilizes database queue driver for reliable background processing.
-* Implements robust validation for request payloads.
-
-## Important Code Files and Structure
-
-* `app/Http/Controllers/EmailController.php` — Email sending, status, and list handling
-* `app/Http/Controllers/EmailTemplateController.php` — CRUD operations for email templates
-* `routes/api.php` — All API routes definitions
-* `config/queue.php` — Queue driver configuration (using database)
-* `config/mail.php` — SMTP settings for Mailtrap integration
-* `docker-compose.yml` — Docker container definitions for app, db, webserver
-* `Dockerfile` — Defines the PHP/Laravel app container environment
-* `.env` — Environment variables for DB, mail, and app configuration
-* `database/migrations/` — Database schema migrations including users, emails, templates
-* `database/seeders/` — Seed data for initial testing
-* `app/Jobs/SendEmailJob.php` — Laravel queued job for sending emails asynchronously
-
-## Pre-requisites
-
-* Docker and Docker Compose installed on your local machine
-* Basic knowledge of Laravel, Docker, and REST API usage
-* Postman or similar API client for testing endpoints
-
-## How to Test the API
-
-* Use Postman to test all endpoints at `http://localhost:8000/api/`
-* Ensure to pass required headers like `Authorization: Bearer {token}` where needed
-* For sending email, provide JSON body with `"to"`, `"subject"`, and `"body"` fields
-* Monitor the queue worker logs to verify email jobs are processed
-* Check Mailtrap inbox for received emails during development
-
-## Important Notes
-
-* **Queue Worker:**
-  To enable asynchronous email sending, the Laravel queue worker **must** be running:
-
-  ```bash
-  docker-compose exec app php artisan queue:work
-  ```
-
-  Without this, emails will not be dispatched and will remain in the pending state.
-
-* **Environment Variables:**
-  Ensure `.env` is properly configured with database and mail credentials. Mailtrap is set for development.
-
-* **Ports:**
-  The Laravel app is served on port 8000 via the `webserver` container. Use `http://localhost:8000` for API requests.
-
-## Extending the Project
-
-* Switch queue driver to Redis for improved performance
-* Integrate production SMTP providers (SendGrid, Mailgun)
-* Implement advanced email template engines (Blade/Markdown)
-* Add detailed logging and error handling
+Here's your updated `README.md` tailored for your current **Keycloak-integrated Laravel Email API**, including Keycloak authentication setup, token usage, Docker instructions, user syncing, and detailed examples.
 
 ---
 
+# 📧 Laravel Email API with Keycloak Authentication
+
+A secure Laravel-based API for sending and managing emails, now fully integrated with **Keycloak** for **authentication**, **authorization**, and **user management**.
+
+---
+
+## 🔐 Keycloak Integration
+
+This app uses **Keycloak** instead of Laravel Sanctum. All protected routes now require a valid **JWT** issued by Keycloak. Users are authenticated and synchronized into Laravel automatically.
+
+### 🔄 How Keycloak Works in This Project
+
+* Users are **managed in Keycloak** and no longer created manually in Laravel.
+* On each authenticated request, the **JWT is validated**, and the Laravel app:
+
+  * Verifies the token via public keys (`/.well-known/openid-configuration`)
+  * Auto-creates or updates the user in the local database
+  * Uses Laravel middleware to gate access based on token presence and validity
+
+---
+
+## ⚙️ Local Development Setup
+
+### Prerequisites
+
+* Docker
+* PHP 8.1+
+* Composer
+* Keycloak running locally (default: `http://localhost:8080`)
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/your-username/email-api.git
+cd email-api
+```
+
+### 2. Start containers
+
+```bash
+docker-compose up -d
+```
+
+### 3. Install dependencies
+
+```bash
+docker-compose exec app composer install
+```
+
+### 4. Migrate & seed database
+
+```bash
+docker-compose exec app php artisan migrate
+```
+
+### 5. Run the queue (email jobs use Laravel queues)
+
+```bash
+docker-compose exec app php artisan queue:work
+```
+
+---
+
+## 🛠️ Keycloak Setup for Local Dev
+
+1. Start Keycloak container (use your own realm/client):
+
+   ```bash
+   docker run -p 8080:8080 \
+     -e KEYCLOAK_ADMIN=admin \
+     -e KEYCLOAK_ADMIN_PASSWORD=admin \
+     quay.io/keycloak/keycloak:latest \
+     start-dev
+   ```
+
+2. Create:
+
+   * A **Realm** (e.g. `email-api-realm`)
+   * A **Client** (e.g. `email-api-client`)
+
+     * Enable `direct access grants`
+     * Set `Access Type: confidential`
+   * Add a **user** with email and password
+
+3. Get `client_id`, `client_secret`, and realm name to set in `.env`:
+
+   ```
+   KEYCLOAK_REALM=email-api-realm
+   KEYCLOAK_CLIENT_ID=email-api-client
+   KEYCLOAK_CLIENT_SECRET=...
+   KEYCLOAK_BASE_URL=http://localhost:8080
+   ```
+
+---
+
+## 🔑 Getting an Access Token
+
+### Using `curl`
+
+```bash
+curl -X POST http://localhost:8080/realms/email-api-realm/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=email-api-client" \
+  -d "grant_type=password" \
+  -d "username=user@example.com" \
+  -d "password=yourpassword" \
+  -d "client_secret=YOUR_SECRET"
+```
+
+### Using Postman
+
+1. Method: `POST`
+2. URL: `http://localhost:8080/realms/email-api-realm/protocol/openid-connect/token`
+3. Body: `x-www-form-urlencoded`:
+
+   * `grant_type: password`
+   * `client_id: email-api-client`
+   * `client_secret: <your-secret>`
+   * `username: user@example.com`
+   * `password: yourpassword`
+
+---
+
+## 🧬 How User Sync Works
+
+* When a request with a valid Keycloak token hits a protected route:
+
+  * Middleware verifies the token
+  * Decoded token data (name, email, sub) is used to create/update the Laravel user
+  * No need for separate user registration logic in Laravel
+
+---
+
+## 📡 API Endpoints
+
+### 🔓 Public Endpoints
+
+| Method | Endpoint         | Description             |
+| ------ | ---------------- | ----------------------- |
+| GET    | `/api/test`      | Health check            |
+| GET    | `/api/health`    | Service status          |
+| GET    | `/api/auth/info` | Keycloak config details |
+
+### 🔐 Protected Endpoints (Require Token)
+
+| Method | Endpoint             | Description                |
+| ------ | -------------------- | -------------------------- |
+| GET    | `/api/auth/me`       | Current authenticated user |
+| GET    | `/api/auth/validate` | Validate current token     |
+| GET    | `/api/user`          | Legacy user endpoint       |
+
+#### 📧 Email
+
+| Method | Endpoint                  | Description         | Body                                               |
+| ------ | ------------------------- | ------------------- | -------------------------------------------------- |
+| POST   | `/api/send-email`         | Send email          | `{ "to": "...", "subject": "...", "body": "..." }` |
+| GET    | `/api/emails`             | List all emails     | -                                                  |
+| GET    | `/api/emails/{id}/status` | Check email status  | -                                                  |
+| DELETE | `/api/emails/{id}`        | Delete email record | -                                                  |
+
+#### 📄 Email Templates
+
+| Method | Endpoint                    | Description         |
+| ------ | --------------------------- | ------------------- |
+| GET    | `/api/email-templates`      | List all templates  |
+| POST   | `/api/email-templates`      | Create new template |
+| GET    | `/api/email-templates/{id}` | Get template by ID  |
+| PUT    | `/api/email-templates/{id}` | Update template     |
+| DELETE | `/api/email-templates/{id}` | Delete template     |
+
+#### 👥 User Management
+
+| Method | Endpoint          | Description    |
+| ------ | ----------------- | -------------- |
+| GET    | `/api/users`      | List all users |
+| DELETE | `/api/users/{id}` | Delete user    |
+
+---
+
+## 🧪 Example: Send Email with Token
+
+```bash
+curl -X POST http://localhost:8000/api/send-email \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "recipient@example.com",
+    "subject": "Welcome",
+    "body": "Hello from Keycloak-powered Email API!"
+  }'
+```
+
+---
+
+## ⚠️ Common Errors
+
+### 401 Unauthorized
+
+```json
+{ "message": "Unauthenticated." }
+```
+
+### 403 Forbidden
+
+```json
+{ "message": "This action is unauthorized." }
+```
+
+### 422 Validation
+
+```json
+{
+  "message": "The given data was invalid.",
+  "errors": {
+    "email": ["The email field is required."]
+  }
+}
+```
+
+---
+
+## 🧾 Key Notes
+
+* All timestamps in UTC
+* Queue must be running for email delivery
+* Tokens expire; refresh as needed
+* Users sync automatically from Keycloak
+* Supports `{{variable}}` placeholders in templates
+
+---
+
+## ✅ Summary of Changes from Sanctum to Keycloak
+
+| Feature           | Sanctum                   | Keycloak (Now)              |
+| ----------------- | ------------------------- | --------------------------- |
+| Auth Mechanism    | Laravel Token             | OpenID Connect (JWT)        |
+| User Registration | Handled by Laravel        | Managed via Keycloak UI     |
+| Token Validation  | Laravel guards/middleware | Public key + JWT Middleware |
+| Syncing           | Manual                    | Automatic on request        |
+| Admin Panel       | Laravel                   | Keycloak Admin Console      |
 
