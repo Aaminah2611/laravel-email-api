@@ -4,18 +4,21 @@ FROM php:8.2-fpm
 # Set working directory
 WORKDIR /var/www
 
-# Install system dependencies
+# Install system dependencies including PostgreSQL client and dev libraries
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libpq-dev \
     zip \
     unzip \
     git \
     curl \
     libzip-dev \
-    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath gd
+    postgresql-client \
+    && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+    && docker-php-ext-install pdo pdo_pgsql pgsql mbstring zip exif pcntl bcmath gd
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
